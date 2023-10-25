@@ -1,0 +1,22 @@
+# extracts the .dat files from Shadow Vault (http://www.gamespot.com/shadow-vault)
+# (c) 18/12/2013 by dniel888
+# script for QuickBMS http://quickbms.aluigi.org
+
+idstring "DATA"
+get files long
+get dummy longlong
+
+set START_POINT 40 # each file take 32+4+4
+math START_POINT *= files
+math START_POINT += 0x10 # first line
+
+for i = 0 < files
+    get OFFSET long
+    math OFFSET += START_POINT
+    
+    get SIZE long
+    getdstring NAME 0x20
+    
+    log NAME OFFSET SIZE
+    
+next i

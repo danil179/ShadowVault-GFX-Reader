@@ -1,0 +1,38 @@
+# extracts the .gxl files from Shadow Vault (http://www.gamespot.com/shadow-vault)
+# (c) 18/12/2013 by dniel888
+# script for QuickBMS http://quickbms.aluigi.org
+
+get UNK long
+idstring "GFXL"    # Graphics library
+get FILES long
+
+get NAME1 long
+get UNK long
+get UNK long
+get OFFSET1 long
+get UNK long
+
+math FILES -= 1 # for the first file
+
+for i = 0 < FILES
+    get NAME2 long
+    get UNK long
+    get UNK long
+    get OFFSET2 long
+    get UNK long
+    
+    set SIZE OFFSET2
+    math SIZE -= OFFSET1
+    
+    string NAME1 += ".gfx"
+    log NAME1 OFFSET1 SIZE 
+    
+    set OFFSET1 OFFSET2
+    set NAME1 NAME2
+next i
+
+get SIZE asize
+math SIZE -= OFFSET1
+
+string NAME1 += ".gfx"
+log NAME1 OFFSET1 SIZE
