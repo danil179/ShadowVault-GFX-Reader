@@ -11,15 +11,19 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using NAudio.Wave;
 
 namespace GFXViewer
 {
     public partial class Form1 : Form
     {
         GFX curGfx;
+        AUDX curAUDX;
         GFXL lib;
         BCKG curBackground;
+        AUDL aulib;
         bool play = false;
+        WaveOut waveOut = new WaveOut(); // or WaveOutEvent()
 
         public Form1()
         {
@@ -86,6 +90,26 @@ namespace GFXViewer
                     }
 
                     stat_lbl_message.Text = "GXL loaded (" + Path.GetFileName(ofd_GFX.FileName) + ") and processed successfully !";
+                }
+                else if (ext == ".axl")
+                {
+                    stat_lbl_type.Text = "Information : ";
+                    stat_lbl_message.Text = "AXL Loading (" + Path.GetFileName(ofd_GFX.FileName) + ") ...";
+                    Wait(0, 0, 0, 0, 10);
+
+                    aulib = new AUDL(ofd_GFX.FileName);
+
+                    stat_lbl_message.Text = "Files tree updating (" + Path.GetFileName(ofd_GFX.FileName) + ") ...";
+                    Wait(0, 0, 0, 0, 10);
+
+                    tv_files.Nodes[0].Nodes.Clear();
+                    tv_files.Nodes[0].Text = Path.GetFileName(ofd_GFX.FileName);
+                    for (int i = 0; i <aulib.FilesNum; ++i)
+                    {
+                        tv_files.Nodes[0].Nodes.Add(aulib.FilesTree[i].ID.ToString());
+                    }
+
+                    stat_lbl_message.Text = "AXL loaded (" + Path.GetFileName(ofd_GFX.FileName) + ") and processed successfully !";
                 }
                 else if (ext == ".bck")
                 {
@@ -157,6 +181,26 @@ namespace GFXViewer
             if (e.Node.Nodes.Count == 0 && e.Node.Level > 0)
             {
                 stat_lbl_type.Text = "Information : ";
+                if (Path.GetExtension(e.Node.Parent.Text) == ".axl")
+                {
+                    waveOut.Stop();
+                    var curSelected = aulib.FilesTree[e.Node.Index];
+                    if (curSelected.fileType == 1)
+                    { 
+                        curAUDX = new AUDX(aulib.GetBytes(curSelected.offset, curSelected.size));
+                        waveOut.Init(new WaveFileReader(new MemoryStream(curAUDX.data)));
+                    }
+                    else if (curSelected.fileType == 2)
+                    {
+                        var freader = new Mp3FileReader(new MemoryStream(aulib.GetBytes(curSelected.offset+0x272, curSelected.size)));
+                        waveOut.Init(freader);
+                    }
+                    waveOut.Play();
+                    return;
+                }
+
+
+
                 stat_lbl_message.Text = "GFX Loading (" + e.Node.Text + ") ...";
                 Wait(0, 0, 0, 0, 10);
                 if (Path.GetExtension(e.Node.Parent.Text) == ".gxl")
